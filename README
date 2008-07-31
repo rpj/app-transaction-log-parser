@@ -1,12 +1,20 @@
-A quick-n-dirty perl script to parse iTunes Connect's application tranasction logs, and display them in a "pretty" way.
+A quick-n-dirty perl script to parse iTunes Connect's application tranasction
+logs, and display them in a "pretty" way.
 
-Provide the script with any number of files to parse via the command line, and it will generate an HTML document in the current directory
-with statistics gleaned from the provided files.
+Provide the script with any number of files to parse via the command line, 
+and it will generate an HTML document in the current directory with statistics
+gleaned from the provided files.
 
-So, for example, let's say I have a directory called ~/AppLogs/, which contains many text files that are each one daily log file as downloaded
-from iTunes Connect's "Sales/Trend Reports" pane. Here is how I would run the script (assuming the script is kept at ~/parseAppTransactionLogs.pl):
+So, for example, let's say I have a directory called ~/AppLogs/, which contains
+any number of text files that are each one daily log file as downloaded from 
+iTunes Connect's "Sales/Trend Reports" pane. Here is how I would run the script
+(assuming the script is kept at ~/parseAppTransactionLogs.pl):
 
 $ ~/parseAppTransactionLogs.pl ~/AppLogs/*.txt
 
-If everything went correctly, the script will print to STDOUT which files it has processed, and will produce an HTML file named "Day-XX-YEAR.html",
-where "Day" is the three-letter weekday, "XX" is the day of the month, and "YEAR" is, well, the year.
+If everything went correctly, the script will print to STDOUT which files it has
+processed, and will produce an HTML file named "Day-XX-YEAR.html", where "Day" 
+is the three-letter weekday, "XX" is the day of the month, and "YEAR" is, well,
+the year.
+
+Enjoy! And bug dev@null.com for support. Seriously, I don't want to hear it.
