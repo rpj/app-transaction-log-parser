@@ -168,7 +168,7 @@ print HTML "<h2>Charts</h2><br/><br/>";
 #####
 # daily download chart
 print HTML "<h3>Total downloads, by day:</h3><br/><br/>";
-print HTML "<img src=\"http://chart.apis.google.com/chart?cht=bvs&chs=500x400";
+print HTML "<img src=\"http://chart.apis.google.com/chart?cht=bvs&chs=600x320";
 
 $labels = "";
 $cData = "";
