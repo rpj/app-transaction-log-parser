@@ -138,6 +138,7 @@ foreach my $file (@ARGV) {
 use POSIX qw(strftime);
 my $tStr = strftime("%b-%e-%Y", localtime());
 my $gtStr = strftime("%a %b %e, %Y", localtime());
+$tStr =~ s/\s+//ig;
 
 # I can't use "this be Perl" as an excuse for this atrocity. No more excuses, I'm just lazy: someday this might
 # be templatized, but for now you're going to have to deal with my output style or hack the output here yourself
