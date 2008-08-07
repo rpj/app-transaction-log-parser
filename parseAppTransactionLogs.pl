@@ -3,8 +3,9 @@
 # The overall data structure: yes it's global, yes you can bite my shiny metal ass. This is perl, this is how we roll.
 my $data = {}; 
 
-sub generatePieChartForHash($) {
+sub generatePieChartForHash($$) {
 	my $hName = shift;
+	my $startCmp = shift || 0;
 	my $retStr = "";
 
 	if ($hName) {
@@ -42,6 +43,8 @@ sub generatePieChartForHash($) {
 			$cCount++;
 		}
 
+		$retStr .= "$cData&chl=$labels";
+
 		#my $colors = "";
 		#my $step = 256 / $cCount;
 		#for ($i = 0; $i < $cCount; $i++) {
@@ -54,7 +57,43 @@ sub generatePieChartForHash($) {
 		#$colors =~ s/\,\s?$//ig;
 		#print HTML "&chco=$colors";
 
-		$retStr .= "$cData&chl=$labels\" />";
+		my $colors = "";
+		my $lowLim = 100;
+		my $upLim = 230;
+		my $curCmp = $startCmp;
+		my $lStep = ($upLim - $lowLim) / ($cCount / 2.5);
+		my $dir = 1;
+		my @rgb = ($lowLim, $lowLim, $lowLim);
+
+		for ($i = 0; $i < $cCount; $i++) {
+		#	my $nval = $rgb[$curCmp] + $lStep;
+		#
+		#	if ($nval >= $upLim) {
+		#		$i -= 1;
+		#		$rgb[$curCmp] = $lowLim;
+		#		$curCmp = (($curCmp + 1) % 3);
+		#	}
+		#	else {
+		#		$rgb[$curCmp] = $nval;
+		#		$colors .= sprintf("%02x%02x%02x|", $rgb[0], $rgb[1], $rgb[2]);
+		#	}
+
+
+			my $nval = $rgb[$curCmp] + ($dir == 1 ? $lStep : - $lStep);
+			if (($dir == 1 && $nval <= $upLim) || ($dir == 0 && $nval >= $lowLim)) {
+				$rgb[$curCmp] = $nval;
+				$colors .= sprintf("%02x%02x%02x,", $rgb[0], $rgb[1], $rgb[2]);
+			} else {
+				$dir = ($dir == 1 ? 0 : 1);
+				$curCmp = (($curCmp + 1) % 3), unless ($dir);
+				$i -= 1;
+			}
+		}
+
+		$colors =~ s/\,\s?$//ig;
+		$retStr .= "&chco=$colors";
+
+		$retStr .= qq~" />~;
 	}
 
 	return $retStr;
@@ -169,7 +208,7 @@ print HTML "<h2>Charts</h2><br/><br/>";
 #####
 # daily download chart
 print HTML "<h3>Total downloads, by day:</h3><br/><br/>";
-print HTML "<img src=\"http://chart.apis.google.com/chart?cht=bvs&chs=600x320";
+print HTML "<img src=\"http://chart.apis.google.com/chart?cht=bvs&chs=700x250";
 
 $labels = "";
 $cData = "";
@@ -185,6 +224,8 @@ foreach my $dday (sort(keys(%{$data->{"timeSlices"}}))) {
 		$max = $count, if ($count > $max);
 
 		$cData .= "$count,";
+		$month =~ s/0//ig;
+		$day =~ s/0//ig;
 		$labels .= "$month/$day|";
 	}
 	$cCount++;
@@ -202,34 +243,57 @@ if ($min && $max) {
 	print HTML "&chxt=y&chxl=0:|$min|".int(($min + $max) / 2)."|$max";
 }
 
-my $chbh = 480 / $cCount;
-my $bw = $chbh / 2;
-
+my $chbh = int(500/ $cCount);
+my $bw = int($chbh / 2);
 my $colors = "";
-my $step = 256 / $cCount;
+my $lowLim = 70;
+my $upLim = 230;
+my $curCmp = 0;
+my $lStep = ($upLim - $lowLim) / ($cCount / 2.5);
+my $dir = 1;
+my @rgb = ($upLim, $lowLim, $lowLim);
+
 for ($i = 0; $i < $cCount; $i++) {
-	my $comp = $i % 3;
-	my $hexcomp = sprintf("%02x", ($step*$i));
-	my $ocomp = sprintf("%02x", ((255-$step)/($i+1)));
-	$colors .= "$ocomp$ocomp$hexcomp|";
+#	my $nval = $rgb[$curCmp] + $lStep;
+#
+#	if ($nval >= $upLim) {
+#		$i -= 1;
+#		$rgb[$curCmp] = $lowLim;
+#		$curCmp = (($curCmp + 1) % 3);
+#	}
+#	else {
+#		$rgb[$curCmp] = $nval;
+#		$colors .= sprintf("%02x%02x%02x|", $rgb[0], $rgb[1], $rgb[2]);
+#	}
+
+
+	my $nval = $rgb[$curCmp] + ($dir == 1 ? $lStep : - $lStep);
+	if (($dir == 1 && $nval <= $upLim) || ($dir == 0 && $nval >= $lowLim)) {
+		$rgb[$curCmp] = $nval;
+		$colors .= sprintf("%02x%02x%02x|", $rgb[0], $rgb[1], $rgb[2]);
+	} else {
+		$dir = ($dir == 1 ? 0 : 1);
+		$curCmp = (($curCmp + 1) % 3), unless ($dir);
+		$i -= 1;
+	}
 }
 
 $colors =~ s/\|\s?$//ig;
 print HTML "&chco=$colors";
 print HTML "&chdl=$nums&chdlp=r";
 
-print HTML "&chd=t:$cData&chl=$labels&chbh=$bw,$bw\" />";
+print HTML "&chd=t:$cData&chl=$labels&chbh=$bw,".int($bw/2)."\" />";
 print HTML "<br/><br/><br/>";
 
 #####
 # country percentage chart
 print HTML "<h3>Total download percentage by country:</h3><br/><br/>";
-print HTML generatePieChartForHash("cn_total");
+print HTML generatePieChartForHash("cn_total", 1);
 
 #####
 # currency percentage chart
 print HTML "<br/><br/><br/>";
 print HTML "<h3>Total download percentage by local currency type:</h3><br/><br/>";
-print HTML generatePieChartForHash("curr_total");
+print HTML generatePieChartForHash("curr_total", 2);
 
 print HTML qq~</body></html>~;
