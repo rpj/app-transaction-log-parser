@@ -45,18 +45,6 @@ sub generatePieChartForHash($$) {
 
 		$retStr .= "$cData&chl=$labels";
 
-		#my $colors = "";
-		#my $step = 256 / $cCount;
-		#for ($i = 0; $i < $cCount; $i++) {
-		#	my $comp = $i % 3;
-		#	my $hexcomp = sprintf("%02x", ($step*$i));
-		#	my $ocomp = sprintf("%02x", ((255-$step)/($i+1)));
-		#	print STDERR "hc: $hexcomp oc: $ocomp\n";
-		#	$colors .= "$hexcomp$hexcomp$hexcomp,";
-		#}
-		#$colors =~ s/\,\s?$//ig;
-		#print HTML "&chco=$colors";
-
 		my $colors = "";
 		my $lowLim = 100;
 		my $upLim = 230;
@@ -66,20 +54,8 @@ sub generatePieChartForHash($$) {
 		my @rgb = ($lowLim, $lowLim, $lowLim);
 
 		for ($i = 0; $i < $cCount; $i++) {
-		#	my $nval = $rgb[$curCmp] + $lStep;
-		#
-		#	if ($nval >= $upLim) {
-		#		$i -= 1;
-		#		$rgb[$curCmp] = $lowLim;
-		#		$curCmp = (($curCmp + 1) % 3);
-		#	}
-		#	else {
-		#		$rgb[$curCmp] = $nval;
-		#		$colors .= sprintf("%02x%02x%02x|", $rgb[0], $rgb[1], $rgb[2]);
-		#	}
-
-
 			my $nval = $rgb[$curCmp] + ($dir == 1 ? $lStep : - $lStep);
+
 			if (($dir == 1 && $nval <= $upLim) || ($dir == 0 && $nval >= $lowLim)) {
 				$rgb[$curCmp] = $nval;
 				$colors .= sprintf("%02x%02x%02x,", $rgb[0], $rgb[1], $rgb[2]);
@@ -110,7 +86,7 @@ foreach my $file (@ARGV) {
 		my $h = $data->{"files"}->{$fn} = {};
 		
 		my $lCount = 0;
-		my $ui = -1, $sdi = -1, $edi = -1, $cci = -1, $cni = -1, $vi = -1, $ti = -1;
+		my $ui = -1, $sdi = -1, $edi = -1, $cci = -1, $cni = -1, $vi = -1, $ti = -1, $isrc = -1;;
 
 		for (; $_ = <F>; $lCount++) {
 			if (!$lCount) {
@@ -125,23 +101,25 @@ foreach my $file (@ARGV) {
 					$cni = $iCount, if ($id =~ /Country\sCode/i);
 					$vi = $iCount, if ($id =~ /Artist\s/i);
 					$ti = $iCount, if ($id =~ /Title\s/i);
+					$isrc = $iCount, if ($id =~ /ISRC\s/i);
 
 					$iCount++;
 				}
 
-				$h->{"indexes"} = {"UI"=>$ui, "SDI"=>$sdi, "EDI"=>$edi, "CCI"=>$cci, "CNI"=>$cni, "VI"=>$vi, "TI"=>$ti};
+				$h->{"indexes"} = {"UI"=>$ui, "SDI"=>$sdi, "EDI"=>$edi, "CCI"=>$cci, "CNI"=>$cni, "VI"=>$vi, "TI"=>$ti, "ISRC"=>$isrc};
 			}
 			else {
 				if ($ui > -1 && $sdi > -1 && $edi > -1 && $cci > -1 && $cni > -1 && $vi > -1 && $ti > -1) {
 					my @fields = split(/\t/);
 
-					my $units = @fields[$ui];
-					my $startDate = @fields[$sdi];
-					my $endDate = @fields[$edi];
-					my $currency = @fields[$cci];
-					my $country = @fields[$cni];
-					my $vendor = @fields[$vi];
-					my $title = @fields[$ti];
+					my $units = $fields[$ui];
+					my $startDate = $fields[$sdi];
+					my $endDate = $fields[$edi];
+					my $currency = $fields[$cci];
+					my $country = $fields[$cni];
+					my $vendor = $fields[$vi];
+					my $title = $fields[$ti];
+					my $isrcVal = $fields[$isrc], if ($isrc > -1);
 
 					my $days = $endDate - $startDate;
 					my $dur = "$startDate" . ($days > 0 ? "-$endDate" : "");
@@ -159,6 +137,9 @@ foreach my $file (@ARGV) {
 					$data->{"vendors"}->{$vendor}->{"titles"}->{$title}->{"cn_total"}->{$country} += $units;
 					$data->{"vendors"}->{$vendor}->{"curr_total"}->{$currency} += $units;
 					$data->{"vendors"}->{$vendor}->{"titles"}->{$title}->{"curr_total"}->{$currency} += $units;
+
+					$data->{"vendors"}->{$vendor}->{"isrc_total"}->{$isrcVal}++, if ($isrcVal);
+					$data->{"isrc_total"}->{$irscVal}++, if ($isrcVal);
 
 					# overall totals
 					$data->{"total"} += $units;
@@ -214,6 +195,7 @@ $labels = "";
 $cData = "";
 $cCount = 0;
 my $min = 2**32, $max = 0;
+
 foreach my $dday (sort(keys(%{$data->{"timeSlices"}}))) {
 	if ($data->{"timeSlices"}->{$dday}->{"numDays"} == 0 && $dday =~ /(\d{4})(\d{2})(\d{2})/) {
 		my $year = $1, $month = $2, $day = $3;
@@ -228,6 +210,7 @@ foreach my $dday (sort(keys(%{$data->{"timeSlices"}}))) {
 		$day =~ s/0//ig;
 		$labels .= "$month/$day|";
 	}
+
 	$cCount++;
 }
 
@@ -254,20 +237,8 @@ my $dir = 1;
 my @rgb = ($upLim, $lowLim, $lowLim);
 
 for ($i = 0; $i < $cCount; $i++) {
-#	my $nval = $rgb[$curCmp] + $lStep;
-#
-#	if ($nval >= $upLim) {
-#		$i -= 1;
-#		$rgb[$curCmp] = $lowLim;
-#		$curCmp = (($curCmp + 1) % 3);
-#	}
-#	else {
-#		$rgb[$curCmp] = $nval;
-#		$colors .= sprintf("%02x%02x%02x|", $rgb[0], $rgb[1], $rgb[2]);
-#	}
-
-
 	my $nval = $rgb[$curCmp] + ($dir == 1 ? $lStep : - $lStep);
+
 	if (($dir == 1 && $nval <= $upLim) || ($dir == 0 && $nval >= $lowLim)) {
 		$rgb[$curCmp] = $nval;
 		$colors .= sprintf("%02x%02x%02x|", $rgb[0], $rgb[1], $rgb[2]);
