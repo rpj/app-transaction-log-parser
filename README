@@ -1,5 +1,6 @@
 A quick-n-dirty perl script to parse iTunes Connect's application tranasction
-logs, and display them in a "pretty" way.
+daily logs, and display them in a "pretty" way. (Weekly logs work, but don't
+result in very good looking output).
 
 Provide the script with any number of files to parse via the command line, 
 and it will generate an HTML document in the current directory with statistics
