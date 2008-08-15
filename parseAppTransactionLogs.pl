@@ -362,7 +362,7 @@ my $upLim = 205;
 my $curCmp = 0;
 my $lStep = ($upLim - $lowLim) / ($cCount / 2.5);
 my $dir = 1;
-my @rgb = ($upLim, $lowLim + int(rand(10)), $lowLim + int(rand(10)));
+my @rgb = ($upLim, $lowLim - int(rand(10)), $lowLim + int(rand(10)));
 	
 	my $c1 = "abcdef", $c2 = "fedcba";
 
@@ -502,5 +502,7 @@ print HTML "</td><td>";
 print HTML "<h3>Total download percentage by local currency type:</h3><br/><br/>";
 print HTML generatePieChartForHash("curr_total", 2);
 print HTML "</td></tr></table>";
+print HTML "<br/><hr width=100%><br/>";
+print HTML "<center><span style='font-size: small;'><a href=\"http://github.com/rpj/app-transaction-log-parser/tree/master\">iTunes Transaction Parser</a>, &copy; 2008 <a href=\"http://rpj.me\">rpj</a></span></center>";
 
 print HTML qq~</body></html>~;
